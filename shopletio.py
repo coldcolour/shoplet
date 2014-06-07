@@ -6,6 +6,7 @@
 FN_FOLLOW = "follow.csv"
 FN_SHOP = "shop.csv"
 FN_SHOP_TAG = "shoptag.csv"
+FN_USER_RECOMMEND = "user.recommend.dump"
 
 def read_user_shop(fn = FN_FOLLOW):
     # 用户关注店铺数据: "user_id","shop_id" 
@@ -35,6 +36,7 @@ def read_user_shop(fn = FN_FOLLOW):
 
 def read_shop_info(fn = FN_SHOP):
     # 店铺属性数据: "taobao_shop_id","taobao_shop_domain","taobao_shop_title","taobao_shop_like_num","taobao_type","taobao_block"
+    # domain, title, block
     shop_info = {}
 
     f = open(fn, 'r')
@@ -79,11 +81,69 @@ def read_shop_tag(fn = FN_SHOP_TAG):
             sid = int(parts[0].strip('"'))
             tagid  = int(parts[1].strip('"'))
             tagname = parts[2].strip('"')
-            shop_tags.setdefault(sid, set()).add(tagid)
+            shop_tags.setdefault(sid, set()).add((tagid, tagname))
         except ValueError:
             continue
     f.close()
 
     print "%d shop tags read" % len(shop_tags)
     return shop_tags
+
+def parse_loose_matrix_line(s):
+    """
+    Parse line format like: rowid\tcolid:weight\tcolid:weigth.....
+    """
+    s = s.strip()
+    parts = s.split('\t')
+    rowid = 0
+    columns = {} 
+    if len(parts) >= 1:
+        try:
+            rowid = int(parts[0])
+        except ValueError:
+            pass
+    if len(parts) >= 2:
+        for part in parts[1:]:
+            subparts = part.split(':')
+            if len(subparts) != 2:
+                continue
+            else:
+                try:
+                    colid = int(subparts[0])
+                    val = float(subparts[1])
+                    columns[colid] = val
+                except ValueError:
+                    pass
+    return rowid, columns
+
+def read_user_recommend(fn = FN_USER_RECOMMEND):
+    # 用户推荐数据：uid\tsid:weight\tsid:weight
+    user_recommend_list = {}
+
+    f = open(fn, 'r')
+    for line in f:
+        uid, rlist = parse_loose_matrix_line(line)
+        if uid != -1:
+            user_recommend_list[uid] = rlist
+    f.close()
+
+    print "%d user recommend list read" % len(user_recommend_list)
+    return user_recommend_list
+
+if __name__ == "__main__":
+    #read_user_recommend()
+    pass
+
+
+
+
+
+
+
+
+
+
+
+
+
 

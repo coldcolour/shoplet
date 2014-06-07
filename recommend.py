@@ -20,13 +20,9 @@ import sys
 import csv
 import math
 from cStringIO import StringIO
-#from future import with statements
+from shopletio import *
 
-USE_IDF = True
-DEBUG = False
-FN_FOLLOW = "follow.csv"
-FN_SHOP = "shop.csv"
-FN_SHOP_TAG = "shoptag.csv"
+DEBUG = True
 TOP_SHOP_NUM = 15
 FN_OUT_CSV = "output.csv"
 FN_OUT_HTML = "output.html"
@@ -68,69 +64,9 @@ class Recommender(object):
         self.shop_idf = {} # sid -> [df, idf]
 
     def _read_inputs(self):
-        # 用户关注店铺数据: "user_id","shop_id" 
-        f = open(FN_FOLLOW, 'r')
-        for no, line in enumerate(f):
-            if no == 0:
-                continue
-            # uid, shopid
-            parts = line.strip().split('\t')
-            if len(parts) != 2:
-                continue
-            try:
-                uid = int(parts[0].strip('"'))
-                sid = int(parts[1].strip('"'))
-                self.shop_users.setdefault(sid, {})[uid] = 1.0
-                self.user_shops.setdefault(uid, {})[sid] = 1.0
-            except ValueError:
-                continue
-        f.close()
-        print "%d user->shop relationship" % len(self.user_shops)
-        print "%d shop->user relationship" % len(self.shop_users)
-
-        # 店铺属性数据: "taobao_shop_id","taobao_shop_domain","taobao_shop_title","taobao_shop_like_num","taobao_type","taobao_block"
-        f = open(FN_SHOP, 'r')
-        for no, line in enumerate(f):
-            if no == 0:
-                continue
-            # uid, shopid
-            parts = line.strip().split('\t')
-            if len(parts) != 6:
-                continue
-            try:
-                sid = int(parts[0].strip('"'))
-                domain = parts[1].strip('"')
-                title = parts[2].strip('"')
-                BorC = parts[4].strip('"')
-                if BorC == "B":
-                    domain = "%s.tmall.com" % domain
-                else:
-                    domain = "%s.taobao.com" % domain
-                block = int(parts[5].strip('"'))
-                self.shop_info[sid] = [domain, title, block]
-            except ValueError:
-                continue
-        f.close()
-        print "%d shop info read" % len(self.shop_info)
-
-        # 店铺tag分类: "taobao_shop_id","shop_tag_id","shop_tag_show_name"
-        f = open(FN_SHOP_TAG, 'r')
-        for no, line in enumerate(f):
-            if no == 0:
-                continue
-            # uid, shopid
-            parts = line.strip().split('\t')
-            if len(parts) != 3:
-                continue
-            try:
-                sid = int(parts[0].strip('"'))
-                tagid  = int(parts[1].strip('"'))
-                tagname = parts[2].strip('"')
-                self.shop_tags.setdefault(sid, set()).add(tagid)
-            except ValueError:
-                continue
-        f.close()
-        print "%d shop tags read" % len(self.shop_tags)
+        self.user_shops, self.shop_users = read_user_shop()
+        self.shop_info = read_shop_info()
+        self.shop_tags = read_shop_tag()
 
         # 从店铺tag构造用户tag，用户所有关注的店铺tag就是她的tag集合
         for uid in self.user_shops:
@@ -149,12 +85,11 @@ class Recommender(object):
             df = len(self.shop_users[sid])
             self.shop_idf[sid] = [df, math.log(float(total_d)/(1+df))]
 
-        if USE_IDF:
-            # 按tf*idf调整用户对店铺关注的权重
-            for uid in self.user_shops:
-                for sid in self.user_shops[uid]:
-                    if sid in self.shop_idf:
-                        self.user_shops[uid][sid] *= self.shop_idf[sid][1]
+        # 按tf*idf调整用户对店铺关注的权重
+        for uid in self.user_shops:
+            for sid in self.user_shops[uid]:
+                if sid in self.shop_idf:
+                    self.user_shops[uid][sid] *= self.shop_idf[sid][1]
 
     def _compute_item_relation(self):
         """
