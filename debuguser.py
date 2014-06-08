@@ -14,7 +14,7 @@ Output:
 '''
 import os
 import sys
-from shopletio import read_user_shop, read_shop_info, read_shop_tag, read_user_recommend
+from shopletio import read_user_shop, read_shop_info, read_shop_tag, read_user_recommend, read_shop_sim
 from cStringIO import StringIO
 
 def get_shop_link(sid, shop_info, shop_tags = None):
@@ -34,7 +34,10 @@ def get_html_header():
         <html>
             <head><meta http-equiv=Content-Type content="text/html;charset=utf-8">
                 <title></title>
-                <style> table{border-collapse:collapse} table th,table td{border:1px solid #000; padding:0} </style>
+                <style> 
+                    table{border-collapse:collapse} table th,table td{border:1px solid #000; padding:0} 
+                    a { text-decoration:none }
+                </style>
             </head>\r\n
             <body>
         """
@@ -55,6 +58,7 @@ def main():
     shop_info = read_shop_info()
     shop_tags = read_shop_tag()
     user_recommend_list = read_user_recommend()
+    shop_sim = read_shop_sim()
 
     buf = StringIO()
     buf.write(get_html_header())
@@ -68,7 +72,7 @@ def main():
     buf.write("<h2>给用户推荐的店铺</h2>\n")
     buf.write("<ul>\n")
     for r in rlist:
-        buf.write("<li>%s&nbsp;%.2f</li>\n" % (get_shop_link(r, shop_info, shop_tags), rlist[r]))
+        buf.write("<li>%s&nbsp;%.2f</li>\n" % (get_shop_link(r[0], shop_info, shop_tags), r[1]))
     buf.write("</ul>\n")
 
     # 打印用户关注店铺信息
@@ -84,8 +88,21 @@ def main():
         buf.write("</ul>\n")
 
     # 打印店铺相关店铺信息
+    buf.write('<h2>相关店铺信息</h2>')
+    shops = user_shops[uid]
+    buf.write("<ul>\n")
+    for sid in shops:
+        if sid not in shop_sim:
+            continue
+        buf.write("<li><h3>%s</h3>" % get_shop_link(sid, shop_info, shop_tags))
+        relshops = shop_sim[sid]
+        for rshop in relshops:
+            buf.write('%s:%.2f&nbsp;&nbsp;&nbsp;&nbsp;' % (get_shop_link(rshop[0], shop_info, shop_tags), rshop[1]))
+        buf.write('</li>\n')
+    buf.write("</ul>\n")
+        
     buf.write(get_html_tail())
-    fout = open("foo.html", 'w')
+    fout = open("u%d.debug.html" % uid, 'w')
     fout.write(buf.getvalue())
     fout.close()
 

@@ -7,6 +7,7 @@ FN_FOLLOW = "follow.csv"
 FN_SHOP = "shop.csv"
 FN_SHOP_TAG = "shoptag.csv"
 FN_USER_RECOMMEND = "user.recommend.dump"
+FN_SHOP_SIM = "shop.sim.dump"
 
 def read_user_shop(fn = FN_FOLLOW):
     # 用户关注店铺数据: "user_id","shop_id" 
@@ -24,11 +25,22 @@ def read_user_shop(fn = FN_FOLLOW):
         try:
             uid = int(parts[0].strip('"'))
             sid = int(parts[1].strip('"'))
-            shop_users.setdefault(sid, {})[uid] = 1.0
+            #shop_users.setdefault(sid, {})[uid] = 1.0
             user_shops.setdefault(uid, {})[sid] = 1.0
         except ValueError:
             continue
     f.close()
+
+    # 过滤掉关注店铺超过50的用户
+    uid_to_remove = []
+    for uid in user_shops:
+        if len(user_shops[uid]) >= 50:
+            uid_to_remove.append(uid)
+    for uid in uid_to_remove:
+        user_shops.pop(uid)
+    for uid in user_shops:
+        for sid in user_shops[uid]:
+            shop_users.setdefault(sid, {})[uid] = 1.0
 
     print "%d user->shop relationship" % len(user_shops)
     print "%d shop->user relationship" % len(shop_users)
@@ -45,18 +57,20 @@ def read_shop_info(fn = FN_SHOP):
             continue
         # uid, shopid
         parts = line.strip().split('\t')
-        if len(parts) != 6:
+        if len(parts) != 7:
             continue
         try:
             sid = int(parts[0].strip('"'))
             domain = parts[1].strip('"')
             title = parts[2].strip('"')
             BorC = parts[4].strip('"')
-            if BorC == "B":
-                domain = "%s.tmall.com" % domain
-            else:
-                domain = "%s.taobao.com" % domain
             block = int(parts[5].strip('"'))
+            #if BorC == "B":
+            #    domain = "%s.tmall.com" % domain
+            #else:
+            #    domain = "%s.taobao.com" % domain
+            tsid = int(parts[6].strip('"'))
+            domain = "shop%d.taobao.com" % tsid
             shop_info[sid] = [domain, title, block]
         except ValueError:
             continue
@@ -95,7 +109,7 @@ def parse_loose_matrix_line(s):
     """
     s = s.strip()
     parts = s.split('\t')
-    rowid = 0
+    rowid = -1
     columns = {} 
     if len(parts) >= 1:
         try:
@@ -122,28 +136,34 @@ def read_user_recommend(fn = FN_USER_RECOMMEND):
 
     f = open(fn, 'r')
     for line in f:
-        uid, rlist = parse_loose_matrix_line(line)
-        if uid != -1:
-            user_recommend_list[uid] = rlist
+        rowid, cols = parse_loose_matrix_line(line)
+        if rowid != -1:
+            items = cols.items()
+            items.sort(reverse=True, key=lambda x:x[1])
+            items = items[:20]
+            user_recommend_list[rowid] = items
     f.close()
 
     print "%d user recommend list read" % len(user_recommend_list)
     return user_recommend_list
 
+def read_shop_sim(fn = FN_SHOP_SIM):
+    shop_sim = {}
+
+    f = open(fn, 'r')
+    for line in f:
+        rowid, cols = parse_loose_matrix_line(line)
+        if rowid != -1:
+            items = cols.items()
+            items.sort(reverse=True, key=lambda x:x[1])
+            items = items[:20]
+            shop_sim[rowid] = items
+    f.close()
+
+    print "%d shop sim read" % len(shop_sim)
+    return shop_sim
+
 if __name__ == "__main__":
     #read_user_recommend()
+    read_user_shop()
     pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-

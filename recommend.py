@@ -22,8 +22,8 @@ import math
 from cStringIO import StringIO
 from shopletio import *
 
-DEBUG = True
-TOP_SHOP_NUM = 15
+DEBUG = False
+TOP_SHOP_NUM = 20
 FN_OUT_CSV = "output.csv"
 FN_OUT_HTML = "output.html"
 RAND_USER_NUM = 100
@@ -224,12 +224,12 @@ class Recommender(object):
 
         foutput = open("shop.tags.dump", 'w')
         for sid in self.shop_tags:
-            foutput.write("%d\t%s\n" % (sid, '\t'.join("%s" % tag for tag in self.shop_tags[sid])))
+            foutput.write("%d\t%s\n" % (sid, '\t'.join("%s" % tag[0] for tag in self.shop_tags[sid])))
         foutput.close()
         
         foutput = open("user.tags.dump", 'w')
         for uid in self.user_tags:
-            foutput.write("%d\t%s\n" % (uid, '\t'.join("%s" % tag for tag in self.user_tags[uid])))
+            foutput.write("%d\t%s\n" % (uid, '\t'.join("%s" % tag[0] for tag in self.user_tags[uid])))
         foutput.close()
 
         foutput = open('shop.sim.dump', 'w')
