@@ -86,10 +86,12 @@ class Recommender(object):
             self.shop_idf[sid] = [df, math.log(float(total_d)/(1+df))]
 
         # 按tf*idf调整用户对店铺关注的权重
+        self.shop_users = {} # 使用tf*idf值更新shop users
         for uid in self.user_shops:
             for sid in self.user_shops[uid]:
                 if sid in self.shop_idf:
                     self.user_shops[uid][sid] *= self.shop_idf[sid][1]
+                    self.shop_users.setdefault(sid, {})[uid] = self.user_shops[uid][sid]
 
     def _compute_item_relation(self):
         """
