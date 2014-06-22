@@ -4,10 +4,49 @@
 各种文件格式的读写函数库
 """
 FN_FOLLOW = "follow.csv"
+FN_FOLLOW_WEIGHT = "follow.weight.csv"
 FN_SHOP = "shop.csv"
 FN_SHOP_TAG = "shoptag.csv"
 FN_USER_RECOMMEND = "user.recommend.dump"
 FN_SHOP_SIM = "shop.sim.dump"
+
+def read_user_shop_weight(fn = FN_FOLLOW_WEIGHT):
+    # 用户关注店铺数据: "user_id","shop_id",weight
+    shop_users = {}
+    user_shops = {}
+
+    f = open(fn, 'r')
+    for no, line in enumerate(f):
+        if no == 0:
+            continue
+        # uid, shopid
+        parts = line.strip().split('\t')
+        if len(parts) != 3:
+            continue
+        try:
+            uid = int(parts[0].strip('"'))
+            sid = int(parts[1].strip('"'))
+            weight = float(parts[2].strip('"'))
+            user_shops.setdefault(uid, {})[sid] = weight
+        except ValueError:
+            continue
+    f.close()
+
+    # 每个用户按关注店铺的weight排序，仅保留前N个
+    user_shop_filter = {}
+    for uid in user_shops:
+        items = user_shops[uid].items()
+        items.sort(reverse=True, key=lambda x:x[1])
+        items = items[:10]
+        user_shop_filter[uid] = dict(items)
+    user_shops = user_shop_filter
+    for uid in user_shops:
+        for sid in user_shops[uid]:
+            shop_users.setdefault(sid, {})[uid] = user_shops[uid][sid]
+
+    print "%d user->shop relationship" % len(user_shops)
+    print "%d shop->user relationship" % len(shop_users)
+    return user_shops, shop_users
 
 def read_user_shop(fn = FN_FOLLOW):
     # 用户关注店铺数据: "user_id","shop_id" 

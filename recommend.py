@@ -64,7 +64,7 @@ class Recommender(object):
         self.shop_idf = {} # sid -> [df, idf]
 
     def _read_inputs(self):
-        self.user_shops, self.shop_users = read_user_shop()
+        self.user_shops, self.shop_users = read_user_shop_weight()
         self.shop_info = read_shop_info()
         self.shop_tags = read_shop_tag()
 
