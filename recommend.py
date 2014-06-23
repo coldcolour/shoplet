@@ -65,6 +65,7 @@ class Recommender(object):
 
     def _read_inputs(self):
         self.user_shops, self.shop_users = read_user_shop_weight()
+        self.user_fav_shops = read_user_shop()[0]
         self.shop_info = read_shop_info()
         self.shop_tags = read_shop_tag()
 
@@ -127,7 +128,8 @@ class Recommender(object):
         sys.stdout.flush()
         for no, uid in enumerate(self.user_shops):
             shop_weight = {} # 给该用户推荐的店铺列表及权重
-            shops = self.user_shops[uid] # 用户关注的店铺列表
+            shops = self.user_shops[uid] # 用户有动作的店铺列表
+            fav_shops = self.user_fav_shops.get(uid, {}) # 用户关注的店铺
             if no % 1000 == 0:
                 print "%d" % no
                 sys.stdout.flush()
@@ -146,7 +148,7 @@ class Recommender(object):
             shop_weight_new = {}
             for sid in shop_weight:
                 # 店铺sid是否适合推荐给用户uid
-                if sid in shops:
+                if sid in fav_shops:
                     continue # 原本就关注
                 if sid in self.shop_info and self.shop_info[sid][2] != 0:
                     continue # 店铺的block属性非0，被屏蔽，不使用
