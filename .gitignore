@@ -1,6 +1,6 @@
+*.sh
 *.dump
 *.csv
 *.swp
 *.pyc
 *.html
-deploy.sh
