@@ -5,4 +5,6 @@ do
 	echo $script
 	time . ./$script
 done
+
+python reverse.py ../data/user_acts.kv > ../data/shop_actu.kv
 	
