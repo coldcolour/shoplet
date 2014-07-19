@@ -1,9 +1,28 @@
 #!/usr/bin/python
 #encoding:utf8
 import os
+import re
+
+RE_DIGITS = re.compile('\d+')
 
 def full_path(fn):
     return os.path.join(os.environ['DATA_DIR'], fn)
+
+def key_id(key):
+    kid = int(RE_DIGITS.search(key).group())
+    return kid
+
+def write_kv_dict(d, keypat, fn):
+    '''
+    d: a -> b -> c
+    keypat: key pattern, e.g. U%s_ACTS
+    fn: file name without path
+    '''
+    kvpath = full_path(fn)
+    fout = open(kvpath, 'w')
+    for k in d:
+        fout.write('%s\t%s\n' % (keypat % k, ';'.join(['%s:%s' % item for item in d[k].items()])))
+    fout.close()
 
 class KVEngine(object):
     def __init__(self):
@@ -45,3 +64,10 @@ class KVEngine(object):
         '''return value of value dict'''
         return self.getd.get(dkey, '')
 
+    def keymatch(self, pattern):
+        '''return keys that match pattern'''
+        return [key for key in self._pool if re.search(pattern, key)]
+
+    def getmatch(self, pattern):
+        '''return a dict whose keys all match the pattern'''
+        return dict([(key, self._pool[key]) for key in self._pool if re.search(pattern, key)])
