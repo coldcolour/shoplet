@@ -42,7 +42,7 @@ def compute_cfss():
     sids = shop_users.keys()
     sids.sort()
     l = len(sids)
-    print "Calculating similarity matrix, total %d..." % l
+    print "Calculating shop-shop similarity matrix, total %d..." % l
     for i in range(l):
         if i % 1000 == 0:
             print "%d" % i
@@ -69,7 +69,79 @@ def compute_cfus():
     Output:
         存储CF算法产生的给用户推荐的店铺列表。cfus.kv
     '''
-    pass
+    kvg = KVEngine()
+    kvg.load([full_path('cfss.kv')])
+    kvg.load([full_path('user_favs.kv')])
+    kvg.load([full_path('user_actu.kv')])
+    kvg.load([full_path('shop_binfo.kv')])
+
+    # get shop_similarity
+    keys = kvg.keymatch('S\d+_CFSIMS')
+    shop_similarity = dict([(int(key), dict([(int(k), float(v)) for (k, v) in kvg.getd(key).items()])) for key in keys])
+
+    # get user_fav_shops
+    keys = kvg.keymatch('U\d+_FAVS')
+    user_fav_shops = dict([(int(key), set([int(k) for k in kvg.getl(key)])) for key in keys])
+
+    # get blocked shop set
+    keys = kvg.keymatch('S\d+_BINFO')
+    blocked_shops = set()
+    for key in keys:
+        if kvg.getk(key, 'block') != '0':
+            blocked_shops.add(key_id(key))
+
+    # get user tags by fav shops
+    shop_tags
+
+    # get user_shops
+
+    # shop idf
+
+    # weigting and normalizing user_shops
+
+    # 给每个用户做推荐
+    print "Recommend for each user, total %d" % len(self.user_shops)
+    sys.stdout.flush()
+    for no, uid in enumerate(self.user_shops):
+        shop_weight = {} # 给该用户推荐的店铺列表及权重
+        shops = self.user_shops[uid] # 用户有动作的店铺列表
+        fav_shops = self.user_fav_shops.get(uid, {}) # 用户关注的店铺
+        if no % 1000 == 0:
+            print "%d" % no
+            sys.stdout.flush()
+
+        for sid in shops:
+            if sid not in self.shop_similarity:
+                continue
+            simi_shops = self.shop_similarity[sid]
+            for ssid in simi_shops:
+                if ssid in shop_weight:
+                    shop_weight[ssid] += shops[sid] * simi_shops[ssid]
+                else:
+                    shop_weight[ssid] = shops[sid] * simi_shops[ssid]
+        
+        # 过滤shop_weight
+        shop_weight_new = {}
+        for sid in shop_weight:
+            # 店铺sid是否适合推荐给用户uid
+            if sid in fav_shops:
+                continue # 原本就关注
+            if sid in self.shop_info and self.shop_info[sid][2] != 0:
+                continue # 店铺的block属性非0，被屏蔽，不使用
+            if sid in self.shop_tags and uid in self.user_tags and \
+                    self._tag_conflict(self.user_tags[uid], self.shop_tags[sid]):
+                continue # 用户关注店铺的类型与该店铺不符
+            shop_weight_new[sid] = shop_weight[sid]
+
+        if not shop_weight_new:
+            continue # 没有为此用户推荐一个店铺，都被过滤掉，不记录
+
+        # 排序，取TOP
+        normalize(shop_weight_new)
+        items = shop_weight_new.items()
+        items.sort(reverse=True, key=lambda x: x[1]) # sort by weight desc
+
+        self.user_recommend_list[uid] = items[:TOP_SHOP_NUM] # limit n
 
 def compute_cfuu():
     '''
