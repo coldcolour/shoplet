@@ -6,5 +6,4 @@ do
 	time . ./$script
 done
 
-python reverse.py ../data/user_acts.kv > ../data/shop_actu.kv
-	
+python reverse.py ../data/user_acts.kv SXX_ACTU > ../data/shop_actu.kv
