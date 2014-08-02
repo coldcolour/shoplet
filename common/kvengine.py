@@ -12,6 +12,9 @@ def key_id(key):
     kid = int(RE_DIGITS.search(key).group())
     return kid
 
+def int_float_dict(d):
+    return dict([(int(key), float(value)) for (key, value) in d.items()])
+
 def write_kv_dict(d, keypat, fn):
     '''
     d: a -> b -> c
@@ -58,11 +61,13 @@ class KVEngine(object):
     def getd(self, key):
         '''return a dict'''
         value = self.get(key)
-        return dict([v.split(':') for v in value.split(';')])
+        if not value:
+            return {}
+        return dict([v.split(':', 1) for v in value.split(';')])
 
     def getk(self, key, dkey):
         '''return value of value dict'''
-        return self.getd.get(dkey, '')
+        return self.getd(key).get(dkey, '')
 
     def keymatch(self, pattern):
         '''return keys that match pattern'''
