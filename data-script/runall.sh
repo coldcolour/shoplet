@@ -8,3 +8,4 @@ done
 
 python reverse.py ../data/user_acts.kv SXX_ACTU > ../data/shop_actu.kv
 python reverse.py ../data/user_actg.kv GXX_ACTU > ../data/goods_actu.kv
+python prop_json_value.py ../data/goods_prop.csv > ../data/goods_prop_value.csv
