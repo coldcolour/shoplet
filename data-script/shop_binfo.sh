@@ -5,7 +5,7 @@ OUTPUT="../data/shop_binfo.kv"
 SQL="
 select concat('S',shop.taobao_shop_id,'-BINFO'), 
 	concat('title:',taobao_shop_title,';domain:',shop.taobao_shop_domain,
-		';borc:',taobao_type,';block:',taobao_block,';like:',taobao_shop_like_num) 
+		';borc:',taobao_type,';block:',taobao_block,';like:',taobao_shop_like_num,';taobaoid:',taobao_shop_sid) 
 from taobao_shop_info shop
      join taobao_seller_info seller on seller.taobao_seller_id=shop.taobao_seller_id
 "
