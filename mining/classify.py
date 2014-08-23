@@ -16,8 +16,14 @@ def read_rule(fname):
     rules = {}
     for line in open(fname, 'r'):
         parts = line.strip().split('\t')
-        if len(parts) != 3:
+        l = len(parts)
+        if l <= 2 or l > 3:
             continue
+        elif l == 2:
+            parts.append('')
+        else:
+            pass
+            
         rules[parts[0]] = (set(parts[1].split(',')), set(parts[2].split(',')))
     return rules
 
@@ -53,7 +59,8 @@ def main():
         gid = int(parts[0])
         name = parts[1]
         categories = classify(name, rules)
-        print '%d\t%s\t%s' % (gid, name, ','.join(categories))
+        for category in categories:
+            print '%d\t%s\t%s' % (gid, name, category)
     fgoodsname.close()
 
 if __name__ == '__main__':
