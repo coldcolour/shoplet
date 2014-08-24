@@ -52,7 +52,7 @@ def ginfo(kvg, gid):
         return 'unknown', '', ''
     title = kvg.getk(key, 'name')
     imgurl = kvg.getk(key, 'imgurl')
-    taobaourl = "http://item.taobao.com/item.htm?id=%s" % kvg.getk('G%s-BINFO' % key, 'tbid')
+    taobaourl = "http://item.taobao.com/item.htm?id=%s" % kvg.getk(key, 'tbid')
     return title, imgurl, taobaourl
 
 def main_snippet(gid, title, imgurl, taobaourl):
@@ -83,9 +83,12 @@ def main():
     for gid in goods_simi:
         title, imgurl, taobaourl = ginfo(kvg, gid)
         html.write(main_snippet(gid, title, imgurl, taobaourl))
-        for rgid in goods_simi[gid]:
+        items = goods_simi[gid].items()
+        items.sort(key=lambda x:x[1], reverse=True)
+        for item in items:
+            rgid, weight = item
             rtitle, rimgurl, rtaobaourl = ginfo(kvg, rgid)
-            html.write(sub_snippet(rgid, rtitle, rimgurl, rtaobaourl, goods_simi[gid][rgid]))
+            html.write(sub_snippet(rgid, rtitle, rimgurl, rtaobaourl, weight))
 
     open(sys.argv[3], 'w').write(html.getvalue())
 
