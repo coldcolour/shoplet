@@ -18,5 +18,11 @@ sort -k1,1n -o ../data/goods_txt ../data/goods_txt
 python merge_lines.py ../data/goods_txt ../data/foo && mv ../data/foo ../data/goods_txt
 echo classify
 python ../mining/classify.py ../data/goods_name.csv ../data/catwords.tsv > ../data/goods_category.csv
+gawk -F'\t' '{print $1,$3}' ../data/goods_category.csv | sed 's/:.*$//g' | sort -k2,2 > ../data/goods.group.1
+gawk -F'\t' '{print $1}' ../data/catwords.tsv | cat -n | sed 's/ //g;s/\t/ /g' | sort -k2,2 > ../data/goods.group.2
+join -j 2 ../data/goods.group.1 ../data/goods.group.2 | gawk '{printf "%d\t%d\n",$2,$3}' > ../data/goods.group
+rm ../data/goods.group.*
 echo index
 python ../../pywvtool/pywvtool.py -t goods -o ../data/goods_index --loader="LocalKVFileLoader" --loader-op="src=../data/goods_txt" --tokenizer="MMSegTokenizer" -w TFIDF
+# echo simi
+# filter
