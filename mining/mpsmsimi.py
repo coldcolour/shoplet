@@ -82,6 +82,8 @@ def worker(tasks, foutput, lock, groups):
                 continue
             small_rrids.add(rrid)
         #print >> sys.stderr, 'rrids: %d -> %d' % (len(rrids), len(small_rrids))
+        if not small_rrids:
+            continue
         rrids = small_rrids
         for rrid in rrids:
             rrid2simi[rrid] = norm_dot_product(rows[rid], rows[rrid])
