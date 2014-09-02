@@ -26,6 +26,26 @@ def read_idx_map(fname):
     finput.close()
     return gidx2gid
 
+def read_simi(fname):
+    goods_simi = {}
+    finput = open(fname, 'r')
+    for line in finput:
+        parts = line.strip().split()
+        gid = int(parts[0])
+        if gid == -1:
+            continue
+        else:
+            goods_simi[gid] = {}
+        for part in parts[1:]:
+            subparts = part.split(':')
+            if len(subparts) != 2:
+                continue
+            rgid = int(subparts[0])
+            weight = float(subparts[1])
+            goods_simi[gid][rgid] = weight
+    finput.close()
+    return goods_simi
+
 def read_goods_simi(fname, gidx2gid):
     goods_simi = {}
     finput = open(fname, 'r')
@@ -72,8 +92,9 @@ def main():
         print 'Usage: <goods.simi> <goods.docinfo> <output.html>'
         sys.exit(0)
 
-    gidx2gid = read_idx_map(sys.argv[2])
-    goods_simi = read_goods_simi(sys.argv[1], gidx2gid) #gid -> gid -> weight
+    #gidx2gid = read_idx_map(sys.argv[2])
+    #goods_simi = read_goods_simi(sys.argv[1], gidx2gid) #gid -> gid -> weight
+    goods_simi = read_simi(sys.argv[1])
     kvg = KVEngine()
     kvg.load([full_path('goods_binfo.kv')])
 
