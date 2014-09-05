@@ -75,8 +75,9 @@ def read_wordvector(fname):
             parts = line.strip().split()
             if len(parts) < 2:
                 continue
-            gidx = int(parts[0])
-            gid = gindex2id[gidx]
+            #gidx = int(parts[0])
+            gid = int(parts[0])
+            #gid = gindex2id[gidx]
             for part in parts[1:]:
                 subparts = part.split(':')
                 if len(subparts) != 2:
@@ -141,7 +142,7 @@ def main():
         sys.exit(0)
 
     read_dic(sys.argv[1])
-    read_docinfo(sys.argv[2])
+    #read_docinfo(sys.argv[2])
     read_wordvector(sys.argv[3])
     read_category(sys.argv[4])
     #read_text(sys.argv[5])
