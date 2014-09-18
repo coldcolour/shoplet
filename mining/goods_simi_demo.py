@@ -75,17 +75,17 @@ def ginfo(kvg, gid):
     taobaourl = "http://item.taobao.com/item.htm?id=%s" % kvg.getk(key, 'tbid')
     return title, imgurl, taobaourl
 
-def main_snippet(gid, title, imgurl, taobaourl):
+def main_snippet(case, gid, title, imgurl, taobaourl):
     if not (gid and title and imgurl and taobaourl):
         return ''
     else:
-        return '<div style="width:300px;clear:both;border-style:dashed;border-color:red;border-width:thick;"><a href="%s" target="_blank"><img  title="%s" src="%s" style="width:300px"></a><br/>%s<br/>商品id：%d</div>\n' % (taobaourl, title, imgurl, title, gid)
+        return '<div style="width:300px;clear:both;border-style:dashed;border-color:red;border-width:thick;">Case #%d <a href="%s" target="_blank"><img  title="%s" src="%s" style="width:300px"></a><br/>%s<br/>商品id：%d</div>\n' % (case, taobaourl, title, imgurl, title, gid)
 
-def sub_snippet(gid, title, imgurl, taobaourl, weight):
+def sub_snippet(subcase, gid, title, imgurl, taobaourl, weight):
     if not (title and imgurl and taobaourl):
         return ''
     else:
-        return '<div style="width:200px;float:left;border-style:dashed;border-color:grey;border-width:thin;"><a href="%s" target="_blank"><img title="%s" src="%s" style="width:200px"></a><br/>%s<br/>商品id：%d<br/>相似度：%.4f</div>\n' % (taobaourl, title, imgurl, title, gid, weight)
+        return '<div style="width:200px;height:400px;float:left;border-style:dashed;border-color:grey;border-width:thin;">Match #%d <a href="%s" target="_blank"><img title="%s" src="%s" style="width:200px"></a><br/>%s<br/>商品id：%d<br/>相似度：%.4f</div>\n' % (subcase, taobaourl, title, imgurl, title, gid, weight)
 
 def main():
     if len(sys.argv) != 4:
@@ -101,15 +101,20 @@ def main():
     html = StringIO()
     html.write('<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>')
 
+    case = 0
     for gid in goods_simi:
         title, imgurl, taobaourl = ginfo(kvg, gid)
-        html.write(main_snippet(gid, title, imgurl, taobaourl))
+        html.write(main_snippet(case, gid, title, imgurl, taobaourl))
+        case += 1
         items = goods_simi[gid].items()
         items.sort(key=lambda x:x[1], reverse=True)
-        for item in items:
+        for subcase, item in enumerate(items):
             rgid, weight = item
             rtitle, rimgurl, rtaobaourl = ginfo(kvg, rgid)
-            html.write(sub_snippet(rgid, rtitle, rimgurl, rtaobaourl, weight))
+            html.write(sub_snippet(subcase, rgid, rtitle, rimgurl, rtaobaourl, weight))
+            subcase += 1
+            if subcase >= 10:
+                break
 
     open(sys.argv[3], 'w').write(html.getvalue())
 

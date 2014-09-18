@@ -94,12 +94,14 @@ def same_shop_limit(gid2simi, kvg):
             sys.stdout.flush()
         vector = gid2simi[gid]
         gshopid = get_shop_id(gid, kvg)
+        #print '*%d' % gshopid
         gshopcnt = 0
         items = vector.items()
         items.sort(reverse=True, key=lambda x:x[1])
         remain_items = []
         for item in items:
             rgshopid = get_shop_id(item[0], kvg)
+            #print '%d' % rgshopid
             if rgshopid == gshopid:
                 gshopcnt += 1
                 if gshopcnt > MAX_SAME_SHOP:
@@ -112,7 +114,12 @@ def same_shop_limit(gid2simi, kvg):
         print
 
 def get_me_words(gname, name_me):
-    return [key for key in name_me if key in gname]
+    keys = [key for key in name_me if key in gname]
+    if '童' not in keys:
+        keys.append('非童')
+    if '中年' not in keys or '中老年' not in keys:
+        keys.append('非中老年')
+    return keys
 
 def get_shop_id(gid, kvg):
     try:
@@ -120,12 +127,12 @@ def get_shop_id(gid, kvg):
     except ValueError:
         return -1
 
-def me(gmewords, rgmewords):
+def me(gmewords, rgmewords, name_me):
     mewords = []
     mewords.extend(gmewords)
     mewords.extend(rgmewords)
-    mewords = set(gmewords)
-    if len(mewords) != len(set([i[0] for i in mewords])):
+    mewords = set(mewords)
+    if len(mewords) != len(set([name_me[i][0] for i in mewords])):
         # 如果unique bigno数不等于总数，判断同一bigno有多个smallno，需要互斥
         return True
     else:
@@ -133,6 +140,8 @@ def me(gmewords, rgmewords):
 
 def mutually_exclusive_names(gid2simi, gid2name, name_me):
     for no, gid in enumerate(gid2simi):
+        #if gid == 33493638:
+            #import pdb; pdb.set_trace()
         if no % 10000 == 0:
             print '%d ' % no,
             sys.stdout.flush()
@@ -149,9 +158,10 @@ def mutually_exclusive_names(gid2simi, gid2name, name_me):
             if not rgmewords:
                 remain_items.append(item)
             else:
-                if me(gmewords, rgmewords):
-                    print '%d-%d removed by me' % (gid, item[0])
-                    sys.stdout.flush()
+                #import pdb; pdb.set_trace()
+                if me(gmewords, rgmewords, name_me):
+                    #print '%d-%d removed by me' % (gid, item[0])
+                    #sys.stdout.flush()
                     continue
                 else:
                     remain_items.append(item)
