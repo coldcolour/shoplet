@@ -89,7 +89,7 @@ def worker(tasks, foutput, lock, groups):
             rrid2simi[rrid] = norm_dot_product(rows[rid], rows[rrid])
         items = rrid2simi.items()
         items.sort(key=lambda x:x[1], reverse=True)
-        items = [item for item in items if item[1]>=0.1][:25]
+        items = [item for item in items if item[1]>=0.1][:40]
         buf.write('%d %s\n' % (rid, ' '.join(['%d:%.4f' % item for item in items])))
     else:
         if buf.tell() != 0:
