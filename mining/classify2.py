@@ -37,9 +37,11 @@ def classify(name, rules):
     cats = []
     for cat in rules:
         all_rule, any_rule, no_rule = rules[cat]
-        if all([all([word in name for word in all_rule]), 
-            any([word in name for word in any_rule]), 
-            not any([word in name for word in no_rule])]):
+        if all([
+                not all_rule or all([word in name for word in all_rule]), 
+                not any_rule or any([word in name for word in any_rule]), 
+                not no_rule or not any([word in name for word in no_rule])
+            ]):
             cats.append(cat)
     if cats:
         cats.sort()
