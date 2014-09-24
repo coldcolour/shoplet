@@ -172,7 +172,8 @@ def mutually_exclusive_names(gid2simi, gid2name, name_me):
 def output(fname, gid2simi):
     with open(fname, 'w') as f:
         for gid in gid2simi:
-            f.write('%d %s\n' % (gid, ' '.join(['%d:%.4f' % item for item in gid2simi[gid].items()])))
+            if gid2simi[gid]:
+                f.write('%d %s\n' % (gid, ' '.join(['%d:%.4f' % item for item in gid2simi[gid].items()])))
 
 def main():
     if len(sys.argv) != 6:
