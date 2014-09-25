@@ -31,4 +31,7 @@ rm ../data/goods.group.*
 echo index
 time python ../../pywvtool/pywvtool.py -t goods -o ../data/goods_index --loader="LocalKVFileLoader" --loader-op="src=../data/goods_txt" --tokenizer="MMSegTokenizer" -w TFIDF
 # echo simi
+cd ../mining
+time pypy mpsmsimi.py ../data/goods_index/goods.wv ../data/goods.simi ../data/goods.group
 # filter
+time python filter_simi.py ../data/goods.simi ../data/goods_index/goods.docinfo ../data/goods_name.csv ../data/name.me ../data/goods.filtered.simi
