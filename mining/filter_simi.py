@@ -108,6 +108,8 @@ def same_shop_limit(gid2simi, kvg):
                     #print '%d-%d removed by same shop' % (gid, item[0])
                     #sys.stdout.flush()
                     continue
+                else:
+                    item[1] *= 0.5 # 同店商品相似度降权
             remain_items.append(item)
         gid2simi[gid] = dict(remain_items)
     else:
