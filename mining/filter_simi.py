@@ -21,6 +21,7 @@ Output:
 '''
 import sys
 import os
+import math
 from common.kvengine import KVEngine, full_path
 MAX_SAME_SHOP = 5
 
@@ -64,7 +65,7 @@ def read_name(fname):
             if len(parts) != 2:
                 continue
             gid = int(parts[0])
-            name = parts[1]
+            name = parts[1].lower()
             gid2name[gid] = name
     return gid2name
 
@@ -84,6 +85,12 @@ def read_me(fname):
                     name_me[spart] = (bigno, smallno)
             bigno += 1
     return name_me
+
+def get_goods_price(kvg, gid):
+    try:
+        return float(kvg.get('G%d-PRICE' % gid))
+    except ValueError:
+        return -1.
 
 def same_shop_limit(gid2simi, kvg):
     global MAX_SAME_SHOP
@@ -109,8 +116,10 @@ def same_shop_limit(gid2simi, kvg):
                     #sys.stdout.flush()
                     continue
                 else:
-                    item[1] *= 0.5 # 同店商品相似度降权
-            remain_items.append(item)
+                    remain_items.append((item[0], item[1] * 0.35)) # 同店商品相似度降权
+                    #print 'same shop %d %.2f -> %.2f' % (item[0], item[1], item[1] * 0.35)
+            else:
+                remain_items.append(item)
         gid2simi[gid] = dict(remain_items)
     else:
         print
@@ -142,8 +151,6 @@ def me(gmewords, rgmewords, name_me):
 
 def mutually_exclusive_names(gid2simi, gid2name, name_me):
     for no, gid in enumerate(gid2simi):
-        #if gid == 33493638:
-            #import pdb; pdb.set_trace()
         if no % 10000 == 0:
             print '%d ' % no,
             sys.stdout.flush()
@@ -171,6 +178,37 @@ def mutually_exclusive_names(gid2simi, gid2name, name_me):
     else:
         print
 
+def price_adj(gid2simi, kvg):
+    '''
+    相似商品价格如果在±10%, ±20%, ±30%，做1.5, 1.2, 1.1提权
+    '''
+    for no, gid in enumerate(gid2simi):
+        gprice = get_goods_price(kvg, gid)
+        if gprice == -1:
+            continue
+
+        if no % 10000 == 0:
+            print '%d ' % no,
+            sys.stdout.flush()
+
+        for rgid in gid2simi[gid]:
+            weight = gid2simi[gid][rgid]
+            rgprice = get_goods_price(kvg, rgid)
+            if rgprice == -1:
+                continue
+            delta = int(abs(gprice - rgprice) / gprice * 10)
+            if delta == 0 or delta == 1:
+                weight *= 1.5
+            elif delta == 2:
+                weight *= 1.2
+            elif delta == 3:
+                weight *= 1.1
+            elif delta >= 10:
+                weight *= 0.5
+            else:
+                pass
+            gid2simi[gid][rgid] = weight
+
 def output(fname, gid2simi):
     with open(fname, 'w') as f:
         for gid in gid2simi:
@@ -193,12 +231,14 @@ def main():
     kvg = KVEngine()
     print 'binfo...'; sys.stdout.flush()
     kvg.load([full_path('goods_binfo.kv')])
+    kvg.load([full_path('goods_price.kv')])
 
     print 'shop limit...'; sys.stdout.flush()
     same_shop_limit(gid2simi, kvg)
     print 'mutually_exclusive_names...'; sys.stdout.flush()
     mutually_exclusive_names(gid2simi, gid2name, name_me)
-    #todo: 童装与非童装互斥
+    print 'price adjustment...'; sys.stdout.flush()
+    price_adj(gid2simi, kvg)
 
     print 'output...'; sys.stdout.flush()
     output(sys.argv[5], gid2simi)
