@@ -18,17 +18,16 @@ def read_rule(fname):
             continue
         category = parts[0]
         subparts = parts[1].split('&')
-        all_rule = []
-        any_rule = []
-        no_rule = []
+        rule_string = 'True'
         for sp in subparts:
             if sp.startswith('!'):
-                no_rule.append(sp[1:])
+                rule_string += " and not ('%s' in name) " % sp[1:]
             elif '|' in sp:
-                any_rule.extend(sp.split('|'))
+                rule_string += ' and (%s)' % (' or '.join(["'%s' in name" % ssp for ssp in sp.split('|')]))
             else:
-                all_rule.append(sp)
-        rules[category] = (all_rule, any_rule, no_rule)
+                rule_string += " and '%s' in name" % sp 
+        rules[category] = rule_string
+        #print category, rule_string
 
     frule.close()
     return rules
@@ -36,12 +35,7 @@ def read_rule(fname):
 def classify(name, rules):
     cats = []
     for cat in rules:
-        all_rule, any_rule, no_rule = rules[cat]
-        if all([
-                not all_rule or all([word in name for word in all_rule]), 
-                not any_rule or any([word in name for word in any_rule]), 
-                not no_rule or not any([word in name for word in no_rule])
-            ]):
+        if eval(rules[cat]):
             cats.append(cat)
     if cats:
         cats.sort()
@@ -71,7 +65,7 @@ def main():
             continue
         gid = int(parts[0])
         name = parts[1]
-        categories = classify(name, rules) 
+        categories = classify(name.lower(), rules) 
         if not categories:
             print '%d\t%s\tNOCAT' % (gid, name)
         else:
