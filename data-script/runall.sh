@@ -21,6 +21,7 @@ sort -k1,1n -o ../data/goods_txt ../data/goods_txt
 pypy merge_lines.py ../data/goods_txt ../data/foo && mv ../data/foo ../data/goods_txt
 echo classify
 time pypy ../mining/classify2.py ../data/goods_name.csv ../data/cat.words.csv > ../data/goods_category.csv
+gawk -F'\t' '{printf("G%s-CAT\t%s\n",$1,$3)}' ../data/goods_category.csv | gawk -F "\t" 's != $1 || NR ==1{s=$1;if(p){print p};p=$0;next}{sub($1,"",$0);p=p""$0;}END{print p}' | sed 's/	/;/g;s/;/	/1' > ../data/goods_cat.kv
 #pypy ../mining/classify2.py ../data/goods_name.csv ../data/catwords.tsv > ../data/goods_category.csv
 gawk -F'\t' '{print $1,$3}' ../data/goods_category.csv | sed 's/:.*$//g' | sort -k2,2 > ../data/goods.group.1
 #gawk -F'\t' '{print $1}' ../data/catwords.tsv | cat -n | sed 's/ //g;s/\t/ /g' | sort -k2,2 > ../data/goods.group.2
@@ -34,4 +35,4 @@ time python ../../pywvtool/pywvtool.py -t goods -o ../data/goods_index --loader=
 cd ../mining
 time pypy mpsmsimi.py ../data/goods_index/goods.wv ../data/goods.simi ../data/goods.group
 # filter
-time python filter_simi.py ../data/goods.simi ../data/goods_index/goods.docinfo ../data/goods_name.csv ../data/name.me ../data/goods.filtered.simi
+time pypy filter_simi.py ../data/goods.simi ../data/goods_index/goods.docinfo ../data/goods_name.csv ../data/name.me ../data/goods.filtered.simi
