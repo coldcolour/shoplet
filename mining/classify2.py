@@ -7,6 +7,7 @@ Rule format: cat1/cat2/cat3,aaa&bbb&ccc|ddd&!eee -> all(aaa, bbb) in name, any(c
 '''
 import sys
 import os
+import re
 
 def read_rule(fname):
     rules = {}
@@ -18,16 +19,15 @@ def read_rule(fname):
             continue
         category = parts[0]
         subparts = parts[1].split('&')
-        rule_string = 'True'
+        rule_res = []
         for sp in subparts:
             if sp.startswith('!'):
-                rule_string += " and not ('%s' in name) " % sp[1:]
+                rule_res.append(re.compile("^((?!%s).)*$" % sp[1:], re.DOTALL))
             elif '|' in sp:
-                rule_string += ' and (%s)' % (' or '.join(["'%s' in name" % ssp for ssp in sp.split('|')]))
+                rule_res.append(re.compile("(%s)" % ('|'.join(["(%s)" % ssp for ssp in sp.split('|')])), re.DOTALL))
             else:
-                rule_string += " and '%s' in name" % sp 
-        rules[category] = rule_string
-        #print category, rule_string
+                rule_res.append(re.compile("%s" % sp, re.DOTALL))
+        rules[category] = rule_res
 
     frule.close()
     return rules
@@ -35,7 +35,7 @@ def read_rule(fname):
 def classify(name, rules):
     cats = []
     for cat in rules:
-        if eval(rules[cat]):
+        if all([reitem.search(name) for reitem in rules[cat]]):
             cats.append(cat)
     if cats:
         cats.sort()
