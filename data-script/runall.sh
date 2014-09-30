@@ -36,3 +36,7 @@ cd ../mining
 time pypy mpsmsimi.py ../data/goods_index/goods.wv ../data/goods.simi ../data/goods.group
 # filter
 time pypy filter_simi.py ../data/goods.simi ../data/goods_index/goods.docinfo ../data/goods_name.csv ../data/name.me ../data/goods.filtered.simi
+# sample
+shuf -n 50 ../data/goods.filtered.simi > ../data/goods.simi.sample
+# sample html page
+python goods_simi_demo.py ../data/goods.simi.sample ../data/goods_index/goods.docinfo ../data/goods.sample.html
