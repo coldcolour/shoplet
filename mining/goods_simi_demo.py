@@ -78,19 +78,23 @@ def ginfo(kvg, gid):
         price = float(kvg.get('G%d-PRICE' % gid))
     except ValueError:
         price = 0.
-    return title, imgurl, taobaourl, shopid, price
+    try:
+        category = kvg.get('G%d-CAT' % gid)
+    except ValueError:
+        category = ''
+    return title, imgurl, taobaourl, shopid, price, category
 
-def main_snippet(case, gid, title, imgurl, taobaourl, shopid, price):
+def main_snippet(case, gid, title, imgurl, taobaourl, shopid, price, category):
     if not (gid and title and imgurl and taobaourl):
         return ''
     else:
-        return '<div style="width:300px;clear:both;border-style:dashed;border-color:red;border-width:thick;">Case #%d <a href="%s" target="_blank"><img  title="%s" src="%s" style="width:300px"></a><br/>%s<br/>商品id：%d<br/>价格: %.2f<br/>店铺ID：%d</div>\n' % (case, taobaourl, title, imgurl, title, gid, price, shopid)
+        return '<div style="width:300px;clear:both;border-style:dashed;border-color:red;border-width:thick;">Case #%d <a href="%s" target="_blank"><img  title="%s" src="%s" style="width:300px"></a><br/>%s<br/>商品id：%d<br/>价格: %.2f<br/>店铺ID：%d<br/>分类信息：%s</div>\n' % (case, taobaourl, title, imgurl, title, gid, price, shopid, category)
 
-def sub_snippet(subcase, gid, title, imgurl, taobaourl, weight, shopid, price):
+def sub_snippet(subcase, gid, title, imgurl, taobaourl, weight, shopid, price, category):
     if not (title and imgurl and taobaourl):
         return ''
     else:
-        return '<div style="width:200px;height:450px;float:left;border-style:dashed;border-color:grey;border-width:thin;">Match #%d <a href="%s" target="_blank"><img title="%s" src="%s" style="width:200px"></a><br/>%s<br/>商品id：%d<br/>价格：%.2f<br/>店铺ID：%d<br/>相似度：%.4f</div>\n' % (subcase, taobaourl, title, imgurl, title, gid, price, shopid, weight)
+        return '<div style="width:200px;height:500px;float:left;border-style:dashed;border-color:grey;border-width:thin;">Match #%d <a href="%s" target="_blank"><img title="%s" src="%s" style="width:200px"></a><br/>%s<br/>商品id：%d<br/>价格：%.2f<br/>店铺ID：%d<br/>相似度：%.4f<br/>分类信息：%s</div>\n' % (subcase, taobaourl, title, imgurl, title, gid, price, shopid, weight, category)
 
 def main():
     if len(sys.argv) != 4:
@@ -101,21 +105,22 @@ def main():
     kvg = KVEngine()
     kvg.load([full_path('goods_binfo.kv')])
     kvg.load([full_path('goods_price.kv')])
+    kvg.load([full_path('goods_cat.kv')])
 
     html = StringIO()
     html.write('<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>')
 
     case = 0
     for gid in goods_simi:
-        title, imgurl, taobaourl, shopid, price = ginfo(kvg, gid)
-        html.write(main_snippet(case, gid, title, imgurl, taobaourl, shopid, price))
+        title, imgurl, taobaourl, shopid, price, category  = ginfo(kvg, gid)
+        html.write(main_snippet(case, gid, title, imgurl, taobaourl, shopid, price, category))
         case += 1
         items = goods_simi[gid].items()
         items.sort(key=lambda x:x[1], reverse=True)
         for subcase, item in enumerate(items):
             rgid, weight = item
-            rtitle, rimgurl, rtaobaourl, shopid, price= ginfo(kvg, rgid)
-            html.write(sub_snippet(subcase, rgid, rtitle, rimgurl, rtaobaourl, weight, shopid, price))
+            rtitle, rimgurl, rtaobaourl, shopid, price, category = ginfo(kvg, rgid)
+            html.write(sub_snippet(subcase, rgid, rtitle, rimgurl, rtaobaourl, weight, shopid, price, category))
             subcase += 1
             if subcase >= 10:
                 break
