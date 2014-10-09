@@ -46,3 +46,5 @@ shuf -n 50 ../data/goods.filtered.simi > ../data/goods.simi.sample
 
 echo sample html page
 python goods_simi_demo.py ../data/goods.simi.sample ../data/goods_index/goods.docinfo ../data/goods.sample.html
+
+echo all done
