@@ -198,12 +198,12 @@ def price_adj(gid2simi, kvg):
                 continue
             delta = int(abs(gprice - rgprice) / gprice * 10)
             if delta == 0 or delta == 1:
-                weight *= 1.5
+                weight *= 2.0
             elif delta == 2:
                 weight *= 1.2
             elif delta == 3:
                 weight *= 1.1
-            elif delta >= 10:
+            elif delta >= 5:
                 weight *= 0.5
             else:
                 pass
