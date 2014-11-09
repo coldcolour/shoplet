@@ -213,7 +213,7 @@ def output(fname, gid2simi):
     with open(fname, 'w') as f:
         for gid in gid2simi:
             if gid2simi[gid]:
-                f.write('%d %s\n' % (gid, ' '.join(['%d:%.4f' % item for item in gid2simi[gid].items()])))
+                f.write('%d\t%s\n' % (gid, ' '.join(['%d:%.4f' % item for item in gid2simi[gid].items()])))
 
 def main():
     if len(sys.argv) != 6:

@@ -7,7 +7,7 @@ fi
 
 OUTPUT="../data/goods_sales.kv"
 SQL="
-SELECT concat('G', tgoods_id, '-PRICE'),
+SELECT concat('G', tgoods_id, '-SALES'),
        tgoods_sales_num
 FROM taobao_goods_info
 WHERE taobao_goods_online_status=1
