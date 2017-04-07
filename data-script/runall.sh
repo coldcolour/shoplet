@@ -47,4 +47,14 @@ shuf -n 50 ../data/goods.filtered.simi > ../data/goods.simi.sample
 echo sample html page
 python goods_simi_demo.py ../data/goods.simi.sample ../data/goods_index/goods.docinfo ../data/goods.sample.html
 
+cd ../data-script
+
+if [ -e data/goods.filtered.simi.lastdays ]; then
+    echo lastdays data
+    rm data/goods.filtered.simi.lastdays
+fi
+
+echo load
+./load.sh
+
 echo all done
